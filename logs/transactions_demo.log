@@ -1,0 +1,193 @@
+SELECT supplier_id AS probots FROM supplier WHERE name = 'Probots' 
+SELECT supplier_id AS robu FROM supplier WHERE name = 'Robu.in' 
+SELECT pl.part_id AS led, (SELECT part_id FROM placement WHERE board_id = 1 AND ref_designator = 'R1') AS res1k
+FROM placement pl WHERE pl.board_id = 1 AND pl.ref_designator = 'D1' 
+##### T1. Plan a build of 1 uGameBox (INSERT into build)
+INSERT INTO build(board_id, units) SELECT board_id, 1 FROM board WHERE name = 'uGameBox' RETURNING build_id, units, started_on;
+ build_id | units | started_on 
+----------+-------+------------
+        1 |     1 | 2026-10-14
+(1 row)
+
+INSERT 0 1
+SELECT * FROM v_build_readiness;
+ build_id |  board   | revision | units | parts_short | units_short | ready 
+----------+----------+----------+-------+-------------+-------------+-------
+        1 | uGameBox | rev 1    |     1 |          20 |          49 | f
+(1 row)
+
+##### T2. Try to complete it with no stock (procedure sp_complete_build -> trigger trg_build_complete)
+CALL sp_complete_build(1);
+psql:sql/05_transactions_demo.sql:13: ERROR:  build 1 cannot be completed: short of 9 x Resistor 1k (and possibly more)
+SELECT * FROM v_build_status;
+ build_id |  board   | revision | units | started_on | completed_on |   status    
+----------+----------+----------+-------+------------+--------------+-------------
+        1 | uGameBox | rev 1    |     1 | 2026-10-14 |              | IN PROGRESS
+(1 row)
+
+##### T3. Shopping list for the build (procedure sp_shopping_list with an explicit CURSOR)
+CALL sp_shopping_list(1, 'INR', NULL, NULL);
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Buzzer Active 5V : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  3 x Capacitor 100nF : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  2 x Capacitor 10uF : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  2 x Capacitor 33pF : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Connector 9V BATT : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Connector ISP 2x5 : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Connector SW-420 (VCC/GND/DO) from Zbotic @ 38.0000 = 38.0000
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Crystal 11.0592MHz from Probots @ 15.0000 = 15.0000
+psql:sql/05_transactions_demo.sql:17: NOTICE:  2 x Diode 1N5819 : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Display LCD 16x2 (HD44780) from Probots @ 159.0000 = 159.0000
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x IC / Module AT89S52 from Zbotic @ 103.8400 = 103.8400
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x IC / Module L7805 : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  8 x LED LED : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Potentiometer 10k : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  2 x Resistor 10k : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  9 x Resistor 1k : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Resistor 220 : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  9 x Switch Push button 6mm : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Switch SLIDE SPDT : no INR quote
+psql:sql/05_transactions_demo.sql:17: NOTICE:  1 x Transistor BC547 : no INR quote
+ p_total | p_unpriced 
+---------+------------
+  315.84 |         16
+(1 row)
+
+##### T4. Buy exactly the shortfall in one transaction (DEMO purchases via sp_record_purchase)
+BEGIN;
+BEGIN
+DO $$
+DECLARE r RECORD; v_sup INT := (SELECT supplier_id FROM supplier WHERE name = 'Probots');
+BEGIN
+    FOR r IN SELECT part_id, shortfall FROM v_build_shortfall WHERE build_id = 1 AND shortfall > 0 LOOP
+        CALL sp_record_purchase(r.part_id, v_sup, r.shortfall);
+    END LOOP;
+END $$;
+DO
+COMMIT;
+COMMIT
+SELECT movement_type, COUNT(*) AS movements, SUM(qty_delta) AS parts_in FROM stock_movement GROUP BY movement_type;
+ movement_type | movements | parts_in 
+---------------+-----------+----------
+ PURCHASE      |        20 |       49
+(1 row)
+
+SELECT * FROM v_build_readiness;
+ build_id |  board   | revision | units | parts_short | units_short | ready 
+----------+----------+----------+-------+-------------+-------------+-------
+        1 | uGameBox | rev 1    |     1 |           0 |           0 | t
+(1 row)
+
+##### T5. Complete the build now (trigger passes; stock is consumed through v_part_consumed)
+CALL sp_complete_build(1);
+CALL
+SELECT * FROM v_build_status;
+ build_id |  board   | revision | units | started_on | completed_on |  status   
+----------+----------+----------+-------+------------+--------------+-----------
+        1 | uGameBox | rev 1    |     1 | 2026-10-14 | 2026-10-14   | COMPLETED
+(1 row)
+
+SELECT category, value_text, moved_in, consumed, on_hand FROM v_stock_on_hand
+WHERE part_id IN (SELECT part_id FROM placement WHERE board_id = 1) ORDER BY category LIMIT 6;
+ category  |     value_text      | moved_in | consumed | on_hand 
+-----------+---------------------+----------+----------+---------
+ Buzzer    | Active 5V           |        1 |        1 |       0
+ Capacitor | 33pF                |        2 |        2 |       0
+ Capacitor | 100nF               |        3 |        3 |       0
+ Capacitor | 10uF                |        2 |        2 |       0
+ Connector | ISP 2x5             |        1 |        1 |       0
+ Connector | SW-420 (VCC/GND/DO) |        1 |        1 |       0
+(6 rows)
+
+##### T6. Record 1 damaged LED as a negative adjustment (trigger trg_stock_guard rejects: on hand is 0)
+INSERT INTO stock_movement(part_id, qty_delta, movement_type)
+SELECT part_id, -1, 'ADJUSTMENT' FROM placement WHERE board_id = 1 AND ref_designator = 'D1';
+psql:sql/05_transactions_demo.sql:40: ERROR:  stock for part 5 would go negative (on hand 0, change -1)
+##### T7. Buy 10 spare LEDs, then the same adjustment succeeds (function fn_stock_on_hand)
+CALL sp_record_purchase(5, 5, 10);
+CALL
+INSERT INTO stock_movement(part_id, qty_delta, movement_type)
+SELECT part_id, -1, 'ADJUSTMENT' FROM placement WHERE board_id = 1 AND ref_designator = 'D1';
+INSERT 0 1
+SELECT fn_stock_on_hand(5) AS led_on_hand;
+ led_on_hand 
+-------------
+           9
+(1 row)
+
+##### T8. Try to change the BOM of a board that has been built (trigger trg_freeze_bom rejects)
+DELETE FROM placement WHERE board_id = 1 AND ref_designator = 'R11';
+psql:sql/05_transactions_demo.sql:49: ERROR:  board 1 has completed builds; create a new revision instead of editing its BOM
+UPDATE placement SET label = 'FIRE' WHERE board_id = 1 AND ref_designator = 'SW1';
+psql:sql/05_transactions_demo.sql:50: ERROR:  board 1 has completed builds; create a new revision instead of editing its BOM
+##### T9. UPDATE that is allowed: add a description to a part
+UPDATE part SET description = '8051 MCU, 8 KB flash, DIP-40' WHERE value_text = 'AT89S52' RETURNING part_id, value_text, description;
+ part_id | value_text |         description          
+---------+------------+------------------------------
+      18 | AT89S52    | 8051 MCU, 8 KB flash, DIP-40
+(1 row)
+
+UPDATE 1
+##### T10. DELETE: a planned build can be removed; a supplier with history cannot (FK)
+INSERT INTO build(board_id, units) SELECT board_id, 2 FROM board WHERE name = 'OtterPill' AND revision = 'v1.4' RETURNING build_id;
+ build_id 
+----------
+        2
+(1 row)
+
+INSERT 0 1
+DELETE FROM build WHERE completed_on IS NULL AND board_id = (SELECT board_id FROM board WHERE name = 'OtterPill' AND revision = 'v1.4') RETURNING build_id;
+ build_id 
+----------
+        2
+(1 row)
+
+DELETE 1
+DELETE FROM supplier WHERE name = 'Probots';
+psql:sql/05_transactions_demo.sql:58: ERROR:  update or delete on table "supplier" violates foreign key constraint "price_quote_supplier_id_fkey" on table "price_quote"
+##### T11. Atomicity with SAVEPOINT: a bad step is undone, the good step is kept
+BEGIN;
+BEGIN
+CALL sp_record_purchase(12, 5, 20);
+CALL
+SAVEPOINT before_bad;
+SAVEPOINT
+INSERT INTO price_quote(part_id, supplier_id, unit_price) SELECT part_id, 1, -5 FROM placement WHERE board_id = 1 AND ref_designator = 'R1';
+psql:sql/05_transactions_demo.sql:64: ERROR:  new row for relation "price_quote" violates check constraint "price_quote_unit_price_check"
+ROLLBACK TO SAVEPOINT before_bad;
+ROLLBACK
+COMMIT;
+COMMIT
+SELECT value_text, moved_in, consumed, on_hand FROM v_stock_on_hand
+WHERE part_id = (SELECT part_id FROM placement WHERE board_id = 1 AND ref_designator = 'R1');
+ value_text | moved_in | consumed | on_hand 
+------------+----------+----------+---------
+ 1k         |       29 |        9 |      20
+(1 row)
+
+##### T12. Plan one build of every other board in a single INSERT ... SELECT, then check readiness for all
+INSERT INTO build(board_id, units, started_on)
+SELECT board_id, 1, CURRENT_DATE FROM board WHERE name <> 'uGameBox';
+INSERT 0 10
+SELECT build_id, board, revision, units, parts_short, units_short, ready FROM v_build_readiness ORDER BY build_id;
+ build_id |        board        |  revision   | units | parts_short | units_short | ready 
+----------+---------------------+-------------+-------+-------------+-------------+-------
+        3 | Ubertooth One       | git c9dfdbd |     1 |          49 |          79 | f
+        4 | Ubertooth Artichoke | git c9dfdbd |     1 |          37 |          66 | f
+        5 | Ubertooth Broccoli  | git c9dfdbd |     1 |          46 |          79 | f
+        6 | Ubertooth Celery    | git c9dfdbd |     1 |          56 |          90 | f
+        7 | Ubertooth Endive    | git c9dfdbd |     1 |          10 |          12 | f
+        8 | Ubertooth Pogoprog  | git c9dfdbd |     1 |           8 |          10 | f
+        9 | TC13 Badge          | git c9dfdbd |     1 |          57 |          95 | f
+       10 | OtterPill           | v1.3        |     1 |          24 |          41 | f
+       11 | OtterPill           | v1.4        |     1 |          24 |          41 | f
+       12 | ESP32-PoE-ISO       | Rev N       |     1 |          63 |         116 | f
+(10 rows)
+
+##### Final row counts
+SELECT 'build' t, COUNT(*) FROM build UNION ALL SELECT 'stock_movement', COUNT(*) FROM stock_movement;
+       t        | count 
+----------------+-------
+ build          |    11
+ stock_movement |    23
+(2 rows)
+

@@ -1,0 +1,44 @@
+ref,value,footprint,lib_id
+C1,10u 25V,Capacitor_SMD:C_0805_2012Metric,Device:C_Small
+C2,100n 50V,Capacitor_SMD:C_0603_1608Metric,Device:C_Small
+C3,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C4,10u 25V,Capacitor_SMD:C_0805_2012Metric,Device:C_Small
+C5,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C6,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C7,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C8,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C9,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C10,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+C11,10u 25V,Capacitor_SMD:C_0805_2012Metric,Device:C_Small
+C12,100n 50V,Capacitor_SMD:C_0402_1005Metric,Device:C_Small
+D1,LED RED,LED_SMD:LED_0603_1608Metric,Device:LED
+D2,LED GREEN,LED_SMD:LED_0603_1608Metric,Device:LED
+J1,USB-c,otter:USB-C 16Pin,Connector:USB_C_Receptacle_USB2.0
+J2,VBUS,Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical,Connector:Conn_01x01_Female
+J3,1,Connector_PinHeader_2.54mm:PinHeader_1x15_P2.54mm_Vertical,Connector:Conn_01x15_Male
+J4,2,Connector_PinHeader_2.54mm:PinHeader_1x15_P2.54mm_Vertical,Connector:Conn_01x15_Male
+J5,SWD,otter:PinHeader_1x04_P2.54mm_Horizontal,Connector:Conn_01x04_Male
+J6,GND,Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical,Connector:Conn_01x01_Female
+J7,PAD,TestPoint:TestPoint_Pad_1.0x1.0mm,Connector:Conn_01x01_Female
+L1,4u7,Inductor_SMD:L_1210_3225Metric,Device:L_Small
+R1,DNP,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R2,DNP,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R3,3k3,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R4,3k3,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R5,3k3,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R6,100k,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R7,22k,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R8,0,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R9,0,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R10,3k3,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R11,3k3,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R12,100k,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R13,100,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R14,100k,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R15,22k,Resistor_SMD:R_0402_1005Metric,Device:R_Small
+R16,1,Resistor_SMD:R_0603_1608Metric,Device:R_Small
+SW1,DFU,Button_Switch_SMD:SW_SPST_PTS810,Switch:SW_Push
+U1,USBLC6-4,Package_TO_SOT_SMD:SOT-23-6,otter:otter_USBLC6-4
+U2,STM32F072C8Tx,Package_QFP:LQFP-48_7x7mm_P0.5mm,MCU_ST_STM32F0:STM32F072C8Tx
+U3,SY8201,Package_TO_SOT_SMD:SOT-23-6,otter:JW5026
+U4,FUSB302BMPX,Package_DFN_QFN:WQFN-14-1EP_2.5x2.5mm_P0.5mm_EP1.45x1.45mm,Interface_USB:FUSB302BMPX

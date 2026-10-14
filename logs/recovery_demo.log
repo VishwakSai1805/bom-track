@@ -1,0 +1,44 @@
+--- 1. Committed transaction: buy 5 x BC547
+BEGIN
+DO
+COMMIT
+--- 2. Open transaction (never committed): buy 7 x L7805, then the server is killed
+         note         | rows_visible 
+----------------------+--------------
+ from another session |            1
+(1 row)
+
+--- 3. Kill the server: pg_ctl stop -m immediate (like a power cut, no checkpoint)
+waiting for server to shut down.... done
+server stopped
+[open session output]
+BEGIN
+INSERT 0 1
+          note           | rows_visible_here 
+-------------------------+-------------------
+ inside open transaction |                 2
+(1 row)
+
+WARNING:  terminating connection due to immediate shutdown command
+server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+connection to server was lost
+--- 4. Restart
+waiting for server to start.... done
+server started
+[server log during startup]
+LOG:  database system was interrupted; last known up at 2026-10-14 11:25:20 UTC
+LOG:  database system was not properly shut down; automatic recovery in progress
+LOG:  redo starts at 0/37AB570
+CONTEXT:  WAL redo at 0/37AB620 for Database/DROP: dir 1663/41155
+CONTEXT:  WAL redo at 0/37AB620 for Database/DROP: dir 1663/41155
+LOG:  redo done at 0/3C7CA50 system usage: CPU: user: 0.01 s, system: 0.01 s, elapsed: 0.03 s
+LOG:  checkpoint complete: wrote 1026 buffers (6.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.014 s, sync=0.037 s, total=0.055 s; sync files=338, longest=0.010 s, average=0.001 s; distance=4933 kB, estimate=4933 kB; lsn=0/3C7CA78, redo lsn=0/3C7CA78
+LOG:  database system is ready to accept connections
+--- 5. What survived
+ value_text | qty_delta | movement_type 
+------------+-----------+---------------
+ BC547      |         5 | PURCHASE
+(1 row)
+

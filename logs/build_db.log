@@ -1,0 +1,25 @@
+psql:sql/03b_trg_build_complete.sql:24: NOTICE:  trigger "trg_build_complete" for relation "build" does not exist, skipping
+uGameBox             rev 1        placements=49   skipped={}
+Ubertooth One        git c9dfdbd  placements=79   skipped={'not fitted (NS/NA/DNP)': 1, 'mounting/fiducial/test point': 9}
+Ubertooth Artichoke  git c9dfdbd  placements=66   skipped={'mounting/fiducial/test point': 5}
+Ubertooth Broccoli   git c9dfdbd  placements=79   skipped={'mounting/fiducial/test point': 4}
+Ubertooth Celery     git c9dfdbd  placements=90   skipped={'mounting/fiducial/test point': 7}
+Ubertooth Endive     git c9dfdbd  placements=12   skipped={}
+Ubertooth Pogoprog   git c9dfdbd  placements=10   skipped={'not fitted (NS/NA/DNP)': 5}
+TC13 Badge           git c9dfdbd  placements=95   skipped={'mounting/fiducial/test point': 10}
+OtterPill            v1.3         placements=41   skipped={'not fitted (NS/NA/DNP)': 2}
+OtterPill            v1.4         placements=41   skipped={'not fitted (NS/NA/DNP)': 2}
+ESP32-PoE-ISO        Rev N        placements=116  skipped={'not fitted (NS/NA/DNP)': 11, 'mounting/fiducial/test point': 11}
+quotes loaded: 18
+unmatched lines: 10
+   C61,81: CAP CER .5PF 50V C0G 0402 (GRM1555C1HR50CZ01D)
+   C62: CAP CER 5.6PF 50V C0G 0402 (GRM1555C1H5R6DZ01D)
+   L71: INDUCTOR 27NH 280MA 0402 (LQW15AN27NJ00D)
+   J3: Reverse Polarized SMA Connector (CONREVSMA003.031)
+   U2: ARM Cortex M3 Micro Controller (LPC1758FBD80,551)
+   X2: USB & Firewire Connector TYPE A RA SHLDED PLG SMT AU (48037-1000)
+   U4: Low Dropout (LDO) Regulators Hi PSRR 150 mA LDO Vin 10V max Vout 1.8V (MCP1801T-1802I/OT)
+   U3: Low Dropout (LDO) Regulator 150mA 3.3V (SI9183DT-33-T1-E3)
+   R4: Thick Film Resistor 1/16W 1.5KOHMS 5% (301-1.5K-RC)
+   LEDs: 0603 LED, various colors ()
+INR quotes loaded: 5

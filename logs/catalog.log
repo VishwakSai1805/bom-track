@@ -1,0 +1,40 @@
+                                          List of relations
+ Schema |      Name      | Type  |  Owner   | Persistence | Access method |    Size    | Description 
+--------+----------------+-------+----------+-------------+---------------+------------+-------------
+ public | board          | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | build          | table | postgres | permanent   | heap          | 0 bytes    | 
+ public | category       | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | part           | table | postgres | permanent   | heap          | 56 kB      | 
+ public | placement      | table | postgres | permanent   | heap          | 56 kB      | 
+ public | price_quote    | table | postgres | permanent   | heap          | 8192 bytes | 
+ public | stock_movement | table | postgres | permanent   | heap          | 0 bytes    | 
+ public | supplier       | table | postgres | permanent   | heap          | 8192 bytes | 
+(8 rows)
+
+              List of relations
+ Schema |       Name        | Type |  Owner   
+--------+-------------------+------+----------
+ public | v_board_bom       | view | postgres
+ public | v_board_cost      | view | postgres
+ public | v_build_readiness | view | postgres
+ public | v_build_shortfall | view | postgres
+ public | v_build_status    | view | postgres
+ public | v_latest_quote    | view | postgres
+ public | v_part_consumed   | view | postgres
+ public | v_shared_parts    | view | postgres
+ public | v_stock_on_hand   | view | postgres
+(9 rows)
+
+                                                                                                                                                       List of functions
+ Schema |         Name          | Result data type |                                                                   Argument data types                                                                    | Type | Volatility | Parallel |  Owner   | Security | Access privileges | Language | Internal name | Description 
+--------+-----------------------+------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------+------+------------+----------+----------+----------+-------------------+----------+---------------+-------------
+ public | fn_board_cost         | numeric          | p_board integer, p_currency character DEFAULT 'INR'::bpchar                                                                                              | func | stable     | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | fn_stock_on_hand      | integer          | p_part integer                                                                                                                                           | func | stable     | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | sp_complete_build     |                  | IN p_build integer                                                                                                                                       | proc | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | sp_record_purchase    |                  | IN p_part integer, IN p_supplier integer, IN p_qty integer, IN p_unit_price numeric DEFAULT NULL::numeric, IN p_currency character DEFAULT 'INR'::bpchar | proc | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | sp_shopping_list      |                  | IN p_build integer, IN p_currency character, INOUT p_total numeric DEFAULT 0, INOUT p_unpriced integer DEFAULT 0                                         | proc | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | trg_fn_build_complete | trigger          |                                                                                                                                                          | func | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | trg_fn_freeze_bom     | trigger          |                                                                                                                                                          | func | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+ public | trg_fn_stock_guard    | trigger          |                                                                                                                                                          | func | volatile   | unsafe   | postgres | invoker  |                   | plpgsql  |               | 
+(8 rows)
+

@@ -1,0 +1,74 @@
+================ RUN 1: trigger without locking (broken version) ================
+[A]       t       |          event          
+[A] --------------+-------------------------
+[A]  11:25:21.975 | start: complete build 1
+[A] (1 row)
+[A] 
+[A]       t       | event 
+[A] --------------+-------
+[A]  11:25:24.990 | end
+[A] (1 row)
+[A] 
+[B]       t       |          event          
+[B] --------------+-------------------------
+[B]  11:25:22.976 | start: complete build 2
+[B] (1 row)
+[B] 
+[B]       t       | event 
+[B] --------------+-------
+[B]  11:25:25.990 | end
+[B] (1 row)
+[B] 
+ build_id |  status   
+----------+-----------
+        1 | COMPLETED
+        2 | COMPLETED
+(2 rows)
+
+   value_text    | moved_in | consumed | on_hand 
+-----------------+----------+----------+---------
+ 1k              |        9 |       18 |      -9
+ Push button 6mm |        9 |       18 |      -9
+ LED             |        8 |       16 |      -8
+ 100nF           |        3 |        6 |      -3
+ 33pF            |        2 |        4 |      -2
+(5 rows)
+
+
+================ RUN 2: real trigger with SELECT ... FOR UPDATE ================
+[A]       t       |          event          
+[A] --------------+-------------------------
+[A]  11:25:26.196 | start: complete build 1
+[A] (1 row)
+[A] 
+[A]       t       | event 
+[A] --------------+-------
+[A]  11:25:29.214 | end
+[A] (1 row)
+[A] 
+[B]       t       |          event          
+[B] --------------+-------------------------
+[B]  11:25:27.204 | start: complete build 2
+[B] (1 row)
+[B] 
+[B] ERROR:  build 2 cannot be completed: short of 9 x Switch Push button 6mm (and possibly more)
+[B] CONTEXT:  PL/pgSQL function trg_fn_build_complete() line 16 at RAISE
+[B] SQL statement "UPDATE build SET completed_on = CURRENT_DATE WHERE build_id = p_build"
+[B] PL/pgSQL function sp_complete_build(integer) line 10 at SQL statement
+[B]       t       | event 
+[B] --------------+-------
+[B]  11:25:32.223 | end
+[B] (1 row)
+[B] 
+ build_id |   status    
+----------+-------------
+        1 | COMPLETED
+        2 | IN PROGRESS
+(2 rows)
+
+ value_text | moved_in | consumed | on_hand 
+------------+----------+----------+---------
+ 1k         |        9 |        9 |       0
+ AT89S52    |        1 |        1 |       0
+(2 rows)
+

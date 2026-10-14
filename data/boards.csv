@@ -1,0 +1,12 @@
+name,revision,source,file,format,created_on
+uGameBox,rev 1,Own design (KiCad BOM export),ugamebox-rev1.csv,kicad_grouped,
+Ubertooth One,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/ubertooth-one,ubertooth-one.csv,flat,
+Ubertooth Artichoke,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/artichoke,artichoke.csv,flat,
+Ubertooth Broccoli,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/broccoli,broccoli.csv,flat,
+Ubertooth Celery,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/celery,celery.csv,flat,
+Ubertooth Endive,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/endive,endive.csv,flat,
+Ubertooth Pogoprog,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/pogoprog,pogoprog.csv,flat,
+TC13 Badge,git c9dfdbd,https://github.com/greatscottgadgets/ubertooth hardware/tc13badge,tc13badge.csv,flat,
+OtterPill,v1.3,https://github.com/Jana-Marie/OtterPill HW v1.3 (git f0e7371),otterpill-v1.3.csv,flat,
+OtterPill,v1.4,https://github.com/Jana-Marie/OtterPill HW v1.4 (git f0e7371),otterpill-v1.4.csv,flat,
+ESP32-PoE-ISO,Rev N,https://github.com/OLIMEX/ESP32-POE-ISO HARDWARE/ESP32-PoE-ISO-Rev.N (git c19307e),esp32-poe-iso-revN.csv,flat,
