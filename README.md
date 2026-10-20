@@ -2,6 +2,12 @@
 
 Database Systems (BCSE302L) course project: a PostgreSQL database for hardware bills of materials, part stock and board builds.
 
+**Live app:** https://bom-track.streamlit.app
+
+A KiCad BOM export is only a parts list. BOM-Track stores the primitive facts (which part sits where on which board, supplier quotes, stock movements, builds) and lets the **database compute** cost, stock on hand, shortfall and build readiness through SQL views and PL/pgSQL — nothing derived is ever typed in. The data is real: one 8051 board of my own plus ten published open-hardware boards, 678 placed components.
+
+![BOM-Track overview](docs/screenshots/01_overview.png)
+
 ## Run it (Windows, PostgreSQL 18)
 ```
 pip install -r requirements.txt

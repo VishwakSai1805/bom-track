@@ -15,33 +15,58 @@ st.set_page_config(page_title="BOM-Track", layout="wide")
 def get_conn():
     return connect()
 
+def fresh_conn():
+    """Drop the cached connection and open a new one (used after the server drops us)."""
+    try:
+        get_conn().close()
+    except Exception:
+        pass
+    st.cache_resource.clear()
+    return get_conn()
+
 def conn():
     c = get_conn()
     if c.closed:
-        st.cache_resource.clear(); c = get_conn()
+        c = fresh_conn()
     return c
 
+# On a free hosted database (e.g. Neon) the server suspends after a few minutes idle,
+# which drops the connection. The first query then fails with OperationalError even
+# though psycopg2 still thinks the socket is open. We catch that, reconnect once, and retry.
+DROP_ERRORS = (psycopg2.OperationalError, psycopg2.InterfaceError)
+
 def q(sql, params=None):
-    c = conn()
-    with c.cursor() as cur:
-        cur.execute(sql, params)
-        cols = [d[0] for d in cur.description]
-        rows = cur.fetchall()
-    c.rollback()  # read-only, end the implicit transaction
-    return pd.DataFrame(rows, columns=cols)
+    for attempt in (1, 2):
+        c = conn()
+        try:
+            with c.cursor() as cur:
+                cur.execute(sql, params)
+                cols = [d[0] for d in cur.description]
+                rows = cur.fetchall()
+            c.rollback()  # read-only, end the implicit transaction
+            return pd.DataFrame(rows, columns=cols)
+        except DROP_ERRORS:
+            if attempt == 2:
+                raise
+            fresh_conn()  # server dropped us; reconnect and try once more
 
 def run(sql, params=None, label="SQL executed"):
     """Run one write in its own transaction. Shows the SQL, commits on success, rolls back on error."""
-    c = conn(); c.notices.clear()
-    try:
-        with c:
-            with c.cursor() as cur:
-                cur.execute(sql, params)
-                out = cur.fetchall() if cur.description else None
-        return True, out, [n.strip() for n in c.notices]
-    except psycopg2.Error as e:
-        msg = (e.diag.message_primary or str(e)).strip()
-        return False, msg, []
+    for attempt in (1, 2):
+        c = conn(); c.notices.clear()
+        try:
+            with c:
+                with c.cursor() as cur:
+                    cur.execute(sql, params)
+                    out = cur.fetchall() if cur.description else None
+            return True, out, [n.strip() for n in c.notices]
+        except DROP_ERRORS:
+            if attempt == 2:
+                return False, "database connection was lost; please try again", []
+            fresh_conn()  # server dropped us; reconnect and try once more
+        except psycopg2.Error as e:
+            msg = (e.diag.message_primary or str(e)).strip()
+            return False, msg, []
 
 def done(ok, good, out, sql, params=None):
     """Store the result, then rerun so every table on the page is redrawn from the database."""

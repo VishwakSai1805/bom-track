@@ -57,9 +57,13 @@ def get_id(cur, sql_sel, sql_ins, args):
 
 def connect():
     host = os.environ.get("PGHOST") or ("localhost" if os.name == "nt" else "/tmp")
+    # sslmode/keepalives help on hosted databases (e.g. Neon) that drop idle sockets.
     return psycopg2.connect(host=host, dbname=os.environ.get("PGDATABASE", "bomtrack"),
                             user=os.environ.get("PGUSER", "postgres"), password=os.environ.get("PGPASSWORD"),
-                            port=os.environ.get("PGPORT", "5432"))
+                            port=os.environ.get("PGPORT", "5432"),
+                            sslmode=os.environ.get("PGSSLMODE", "prefer"),
+                            connect_timeout=10, keepalives=1, keepalives_idle=30,
+                            keepalives_interval=10, keepalives_count=3)
 
 def import_board(conn, name, revision, source, rows):
     """rows: iterable of (ref, value, footprint, lib_id). Runs as ONE transaction; returns (board_id, placed, skipped)."""
